@@ -1,3 +1,3 @@
 package ogendemo
 
-//go:generate go tool ogen --target internal/oas --package -oas --clean api/openapi.yaml
+//go:generate go tool ogen --target internal/oas --package oas --clean api/openapi.yaml
