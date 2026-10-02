@@ -21,3 +21,12 @@ var _ Handler = UnimplementedHandler{}
 func (UnimplementedHandler) GetProduct(ctx context.Context, params GetProductParams) (r GetProductRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
+
+// ListProducts implements listProducts operation.
+//
+// List all products.
+//
+// GET /products
+func (UnimplementedHandler) ListProducts(ctx context.Context) (r []Product, _ error) {
+	return r, ht.ErrNotImplemented
+}

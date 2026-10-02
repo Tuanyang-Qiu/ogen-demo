@@ -14,6 +14,12 @@ type Handler interface {
 	//
 	// GET /products/{id}
 	GetProduct(ctx context.Context, params GetProductParams) (GetProductRes, error)
+	// ListProducts implements listProducts operation.
+	//
+	// List all products.
+	//
+	// GET /products
+	ListProducts(ctx context.Context) ([]Product, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and
