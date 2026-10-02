@@ -19,11 +19,58 @@ func (s *Error) SetMessage(val string) {
 
 func (*Error) getProductRes() {}
 
+// NewOptString returns new OptString with value set to v.
+func NewOptString(v string) OptString {
+	return OptString{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptString is optional string.
+type OptString struct {
+	Value string
+	Set   bool
+}
+
+// IsSet returns true if OptString was set.
+func (o OptString) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptString) Reset() {
+	var v string
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptString) SetTo(v string) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptString) Get() (v string, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptString) Or(d string) string {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // Ref: #/components/schemas/Product
 type Product struct {
-	ID    int64   `json:"id"`
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
+	ID          int64     `json:"id"`
+	Name        string    `json:"name"`
+	Price       float64   `json:"price"`
+	Description OptString `json:"description"`
 }
 
 // GetID returns the value of ID.
@@ -41,6 +88,11 @@ func (s *Product) GetPrice() float64 {
 	return s.Price
 }
 
+// GetDescription returns the value of Description.
+func (s *Product) GetDescription() OptString {
+	return s.Description
+}
+
 // SetID sets the value of ID.
 func (s *Product) SetID(val int64) {
 	s.ID = val
@@ -54,6 +106,11 @@ func (s *Product) SetName(val string) {
 // SetPrice sets the value of Price.
 func (s *Product) SetPrice(val float64) {
 	s.Price = val
+}
+
+// SetDescription sets the value of Description.
+func (s *Product) SetDescription(val OptString) {
+	s.Description = val
 }
 
 func (*Product) getProductRes() {}

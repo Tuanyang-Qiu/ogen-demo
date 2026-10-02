@@ -44,6 +44,8 @@ components:
         price:
           type: number
           format: double
+        description:
+          type: string
     Error:
       type: object
       required: [message]
