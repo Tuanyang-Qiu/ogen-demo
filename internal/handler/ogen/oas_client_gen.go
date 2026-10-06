@@ -27,17 +27,37 @@ func trimTrailingSlashes(u *url.URL) {
 
 // Invoker invokes operations described by OpenAPI v3 specification.
 type Invoker interface {
+	HealthInvoker
+	ProductInvoker
+}
+
+// HealthInvoker invokes operations described by OpenAPI v3 specification.
+//
+// x-gen-operation-group: Health
+type HealthInvoker interface {
+	// CheckHealth invokes CheckHealth operation.
+	//
+	// Health check.
+	//
+	// GET /healthz
+	CheckHealth(ctx context.Context) (*CheckHealthOK, error)
+}
+
+// ProductInvoker invokes operations described by OpenAPI v3 specification.
+//
+// x-gen-operation-group: Product
+type ProductInvoker interface {
 	// GetProduct invokes getProduct operation.
 	//
 	// Get one product by its id.
 	//
-	// GET /products/{id}
+	// GET /v1/products/{id}
 	GetProduct(ctx context.Context, params GetProductParams) (GetProductRes, error)
 	// ListProducts invokes listProducts operation.
 	//
 	// List all products.
 	//
-	// GET /products
+	// GET /v1/products
 	ListProducts(ctx context.Context) ([]Product, error)
 }
 
@@ -80,11 +100,85 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 	return u
 }
 
+// CheckHealth invokes CheckHealth operation.
+//
+// Health check.
+//
+// GET /healthz
+func (c *Client) CheckHealth(ctx context.Context) (*CheckHealthOK, error) {
+	res, err := c.sendCheckHealth(ctx)
+	return res, err
+}
+
+func (c *Client) sendCheckHealth(ctx context.Context) (res *CheckHealthOK, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("CheckHealth"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/healthz"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, CheckHealthOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/healthz"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeCheckHealthResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
 // GetProduct invokes getProduct operation.
 //
 // Get one product by its id.
 //
-// GET /products/{id}
+// GET /v1/products/{id}
 func (c *Client) GetProduct(ctx context.Context, params GetProductParams) (GetProductRes, error) {
 	res, err := c.sendGetProduct(ctx, params)
 	return res, err
@@ -94,7 +188,7 @@ func (c *Client) sendGetProduct(ctx context.Context, params GetProductParams) (r
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getProduct"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/products/{id}"),
+		semconv.URLTemplateKey.String("/v1/products/{id}"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -128,7 +222,7 @@ func (c *Client) sendGetProduct(ctx context.Context, params GetProductParams) (r
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/products/"
+	pathParts[0] = "/v1/products/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -176,7 +270,7 @@ func (c *Client) sendGetProduct(ctx context.Context, params GetProductParams) (r
 //
 // List all products.
 //
-// GET /products
+// GET /v1/products
 func (c *Client) ListProducts(ctx context.Context) ([]Product, error) {
 	res, err := c.sendListProducts(ctx)
 	return res, err
@@ -186,7 +280,7 @@ func (c *Client) sendListProducts(ctx context.Context) (res []Product, err error
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listProducts"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/products"),
+		semconv.URLTemplateKey.String("/v1/products"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -220,7 +314,7 @@ func (c *Client) sendListProducts(ctx context.Context) (res []Product, err error
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/products"
+	pathParts[0] = "/v1/products"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"

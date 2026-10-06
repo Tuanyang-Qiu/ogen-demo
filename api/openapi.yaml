@@ -4,10 +4,31 @@ info:
   version: 0.1.0 
 
 paths:
-  /products:
+  /healthz:
+    x-ogen-operation-group: health
+    get:
+      summary: Health check
+      operationId: CheckHealth 
+      tags:
+        - Health
+      responses:
+        "200":
+          description: Service is healthy
+          content: 
+            application/json: 
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+  /v1/products:
+    x-ogen-operation-group: product
     get:
       operationId: listProducts
       summary: list all products
+      tags: 
+        - Product
       responses:
         "200":
           description: All products
@@ -17,10 +38,13 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Product"
-  /products/{id}:
+  /v1/products/{id}:
+    x-ogen-operation-group: product
     get:
       operationId: getProduct
       summary: Get one product by its id
+      tags:
+        - Product
       parameters:
         - name: id
           in: path

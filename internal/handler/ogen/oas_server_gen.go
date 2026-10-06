@@ -8,17 +8,37 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
+	HealthHandler
+	ProductHandler
+}
+
+// HealthHandler handles operations described by OpenAPI v3 specification.
+//
+// x-ogen-operation-group: Health
+type HealthHandler interface {
+	// CheckHealth implements CheckHealth operation.
+	//
+	// Health check.
+	//
+	// GET /healthz
+	CheckHealth(ctx context.Context) (*CheckHealthOK, error)
+}
+
+// ProductHandler handles operations described by OpenAPI v3 specification.
+//
+// x-ogen-operation-group: Product
+type ProductHandler interface {
 	// GetProduct implements getProduct operation.
 	//
 	// Get one product by its id.
 	//
-	// GET /products/{id}
+	// GET /v1/products/{id}
 	GetProduct(ctx context.Context, params GetProductParams) (GetProductRes, error)
 	// ListProducts implements listProducts operation.
 	//
 	// List all products.
 	//
-	// GET /products
+	// GET /v1/products
 	ListProducts(ctx context.Context) ([]Product, error)
 }
 

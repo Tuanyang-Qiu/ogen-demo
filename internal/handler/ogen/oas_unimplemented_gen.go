@@ -13,11 +13,20 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
+// CheckHealth implements CheckHealth operation.
+//
+// Health check.
+//
+// GET /healthz
+func (UnimplementedHandler) CheckHealth(ctx context.Context) (r *CheckHealthOK, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetProduct implements getProduct operation.
 //
 // Get one product by its id.
 //
-// GET /products/{id}
+// GET /v1/products/{id}
 func (UnimplementedHandler) GetProduct(ctx context.Context, params GetProductParams) (r GetProductRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -26,7 +35,7 @@ func (UnimplementedHandler) GetProduct(ctx context.Context, params GetProductPar
 //
 // List all products.
 //
-// GET /products
+// GET /v1/products
 func (UnimplementedHandler) ListProducts(ctx context.Context) (r []Product, _ error) {
 	return r, ht.ErrNotImplemented
 }

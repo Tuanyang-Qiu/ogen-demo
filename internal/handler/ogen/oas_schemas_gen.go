@@ -2,6 +2,20 @@
 
 package ogen
 
+type CheckHealthOK struct {
+	Status OptString `json:"status"`
+}
+
+// GetStatus returns the value of Status.
+func (s *CheckHealthOK) GetStatus() OptString {
+	return s.Status
+}
+
+// SetStatus sets the value of Status.
+func (s *CheckHealthOK) SetStatus(val OptString) {
+	s.Status = val
+}
+
 // Ref: #/components/schemas/Error
 type Error struct {
 	Message string `json:"message"`

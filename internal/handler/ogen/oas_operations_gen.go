@@ -6,6 +6,7 @@ package ogen
 type OperationName = string
 
 const (
+	CheckHealthOperation  OperationName = "CheckHealth"
 	GetProductOperation   OperationName = "GetProduct"
 	ListProductsOperation OperationName = "ListProducts"
 )

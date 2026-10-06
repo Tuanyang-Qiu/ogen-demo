@@ -2,19 +2,21 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
-
-	"github.com/tuanyang-qiu/ogen-demo/internal/handler"
-	"github.com/tuanyang-qiu/ogen-demo/internal/handler/ogen"
+	"os"
 )
 
 func main() {
 
-	srv, err := ogen.NewServer(handler.NewProductHandler())
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	componentGroup, err := AssemblyAppComponents(logger)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to assembly components due to %v", err)
 	}
 
-	log.Println("listening on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", srv))
+	logger.Info("listening", slog.String("addr", "http://localhost:8080"))
+	if err = http.ListenAndServe(":8080", componentGroup.handler); err != nil {
+		log.Fatalf("failed to run application due to %v", err)
+	}
 }
