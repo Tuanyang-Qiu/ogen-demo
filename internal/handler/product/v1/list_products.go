@@ -2,23 +2,18 @@
 package product
 
 import (
-	"cmp"
 	"context"
-	"slices"
 
 	"github.com/tuanyang-qiu/ogen-demo/internal/handler/ogen"
+	"github.com/tuanyang-qiu/ogen-demo/internal/handler/product/v1/pack"
 )
 
 func (h *Handler) ListProducts(ctx context.Context) ([]ogen.Product, error) {
-	allProducts := make([]ogen.Product, 0, len(h.products))
 
-	for _, p := range h.products {
-		allProducts = append(allProducts, p)
+	prodAll, err := h.svc.List(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	slices.SortFunc(allProducts, func(a, b ogen.Product) int {
-		return cmp.Compare(a.ID, b.ID)
-	})
-
-	return allProducts, nil
+	return pack.Products(prodAll), nil
 }

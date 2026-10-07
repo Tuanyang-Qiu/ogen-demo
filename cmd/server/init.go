@@ -7,6 +7,8 @@ import (
 
 	"github.com/tuanyang-qiu/ogen-demo/internal/handler"
 	"github.com/tuanyang-qiu/ogen-demo/internal/handler/ogen"
+	productRepo "github.com/tuanyang-qiu/ogen-demo/internal/repo/product"
+	productSvc "github.com/tuanyang-qiu/ogen-demo/internal/service/product"
 )
 
 type ComponentGroup struct {
@@ -14,7 +16,10 @@ type ComponentGroup struct {
 }
 
 func AssemblyAppComponents(logger *slog.Logger) (*ComponentGroup, error) {
-	combinedHandler := handler.NewCombinedHandler(logger)
+	prodRepo := productRepo.NewMemoryRepository()
+	prodSvc := productSvc.NewService(prodRepo)
+
+	combinedHandler := handler.NewCombinedHandler(logger, prodSvc)
 	ogenServer, err := ogen.NewServer(combinedHandler)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ogen server: %w", err)

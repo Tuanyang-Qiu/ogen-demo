@@ -1,0 +1,9 @@
+# C:\kp\api-orders\.gitattributes:4-11, 16
+# Why the working copy too (eol=lf, not just text=auto): every generator and
+# formatter used here emits LF — gofmt, goimports, ogen, sqlc, golangci-lint
+# fmt, redocly bundle. Git for Windows ships core.autocrlf=true, so without this
+# rule git checks files out as CRLF and the next `make ogen` / `make sqlc` /
+# format run rewrites them back to LF. The content never actually changes, but
+# git's cached file size no longer matches, so the files show up as "modified"
+# with an empty `git diff` until they are re-added. ...
+* text=auto eol=lf

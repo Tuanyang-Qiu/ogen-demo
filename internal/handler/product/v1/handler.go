@@ -5,14 +5,15 @@ import (
 	"log/slog"
 
 	"github.com/tuanyang-qiu/ogen-demo/internal/handler/ogen"
+	productSvc "github.com/tuanyang-qiu/ogen-demo/internal/service/product"
 )
 
 type Handler struct {
-	logger   *slog.Logger
-	products map[int64]ogen.Product
+	logger *slog.Logger
+	svc    productSvc.Service
 }
 
-func NewHandler(logger *slog.Logger) *Handler {
+func NewHandler(logger *slog.Logger, svc productSvc.Service) *Handler {
 	if logger == nil {
 		logger = slog.New(slog.DiscardHandler)
 
@@ -20,9 +21,7 @@ func NewHandler(logger *slog.Logger) *Handler {
 
 	return &Handler{
 		logger: logger,
-		products: map[int64]ogen.Product{
-			1: {ID: 1, Name: "Flat white milk 2L", Price: 4.2},
-			2: {ID: 2, Name: "Sourdough Loaf", Price: 6.50}},
+		svc:    svc,
 	}
 }
 

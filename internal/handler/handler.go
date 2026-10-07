@@ -7,6 +7,7 @@ import (
 	"github.com/tuanyang-qiu/ogen-demo/internal/handler/health"
 	"github.com/tuanyang-qiu/ogen-demo/internal/handler/ogen"
 	productv1 "github.com/tuanyang-qiu/ogen-demo/internal/handler/product/v1"
+	productSvc "github.com/tuanyang-qiu/ogen-demo/internal/service/product"
 )
 
 type (
@@ -18,10 +19,10 @@ type CombinedHandler struct {
 	*productHandler
 }
 
-func NewCombinedHandler(logger *slog.Logger) *CombinedHandler {
+func NewCombinedHandler(logger *slog.Logger, prodSvc productSvc.Service) *CombinedHandler {
 	return &CombinedHandler{
 		health.NewHealthHandler(logger),
-		productv1.NewHandler(logger),
+		productv1.NewHandler(logger, prodSvc),
 	}
 }
 
