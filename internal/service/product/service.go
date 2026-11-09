@@ -12,6 +12,7 @@ import (
 type Service interface {
 	Get(ctx context.Context, id int64) (productRepo.Product, error)
 	List(ctx context.Context) ([]productRepo.Product, error)
+	Update(ctx context.Context, in UpdateInput) (productRepo.Product, error)
 }
 
 var _ Service = (*service)(nil)

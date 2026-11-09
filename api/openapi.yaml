@@ -38,6 +38,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Product"
+    
   /v1/products/{id}:
     x-ogen-operation-group: product
     get:
@@ -66,7 +67,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
+    patch:
+      operationId: patchProduct
+      summary: change some fields of one product
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductPatch"    
+      responses:
+        "200":
+          description: the product after changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          description: no product has this id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
     Product:
@@ -83,6 +115,20 @@ components:
           format: double
         description:
           type: string
+    ProductPatch:
+      type: object
+      description: The fields to change.
+      properties:
+        name:
+          type: string
+          minLength: 1
+        price:
+          type: number
+          format: double
+        description:
+          type: string
+          nullable: true
+          description: send null to remove the desc
     Error:
       type: object
       required: [message]

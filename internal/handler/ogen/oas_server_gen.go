@@ -40,6 +40,12 @@ type ProductHandler interface {
 	//
 	// GET /v1/products
 	ListProducts(ctx context.Context) ([]Product, error)
+	// PatchProduct implements patchProduct operation.
+	//
+	// Change some fields of one product.
+	//
+	// PATCH /v1/products/{id}
+	PatchProduct(ctx context.Context, req *ProductPatch, params PatchProductParams) (PatchProductRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and

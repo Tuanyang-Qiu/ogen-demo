@@ -26,7 +26,10 @@ go.work.sum
 
 # env file
 .env
+open-questions.md
 
 # Editor/IDE
 # .idea/
 # .vscode/
+*.code-workspace
+

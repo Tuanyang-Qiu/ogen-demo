@@ -9,4 +9,5 @@ const (
 	CheckHealthOperation  OperationName = "CheckHealth"
 	GetProductOperation   OperationName = "GetProduct"
 	ListProductsOperation OperationName = "ListProducts"
+	PatchProductOperation OperationName = "PatchProduct"
 )

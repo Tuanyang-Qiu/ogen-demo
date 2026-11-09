@@ -39,3 +39,12 @@ func (UnimplementedHandler) GetProduct(ctx context.Context, params GetProductPar
 func (UnimplementedHandler) ListProducts(ctx context.Context) (r []Product, _ error) {
 	return r, ht.ErrNotImplemented
 }
+
+// PatchProduct implements patchProduct operation.
+//
+// Change some fields of one product.
+//
+// PATCH /v1/products/{id}
+func (UnimplementedHandler) PatchProduct(ctx context.Context, req *ProductPatch, params PatchProductParams) (r PatchProductRes, _ error) {
+	return r, ht.ErrNotImplemented
+}

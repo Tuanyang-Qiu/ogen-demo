@@ -59,6 +59,12 @@ type ProductInvoker interface {
 	//
 	// GET /v1/products
 	ListProducts(ctx context.Context) ([]Product, error)
+	// PatchProduct invokes patchProduct operation.
+	//
+	// Change some fields of one product.
+	//
+	// PATCH /v1/products/{id}
+	PatchProduct(ctx context.Context, request *ProductPatch, params PatchProductParams) (PatchProductRes, error)
 }
 
 // Client implements OAS client.
@@ -333,6 +339,101 @@ func (c *Client) sendListProducts(ctx context.Context) (res []Product, err error
 
 	stage = "DecodeResponse"
 	result, err := decodeListProductsResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// PatchProduct invokes patchProduct operation.
+//
+// Change some fields of one product.
+//
+// PATCH /v1/products/{id}
+func (c *Client) PatchProduct(ctx context.Context, request *ProductPatch, params PatchProductParams) (PatchProductRes, error) {
+	res, err := c.sendPatchProduct(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendPatchProduct(ctx context.Context, request *ProductPatch, params PatchProductParams) (res PatchProductRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("patchProduct"),
+		semconv.HTTPRequestMethodKey.String("PATCH"),
+		semconv.URLTemplateKey.String("/v1/products/{id}"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, PatchProductOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [2]string
+	pathParts[0] = "/v1/products/"
+	{
+		// Encode "id" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "id",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.Int64ToString(params.ID))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "PATCH", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodePatchProductRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	body := resp.Body
+	defer body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodePatchProductResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

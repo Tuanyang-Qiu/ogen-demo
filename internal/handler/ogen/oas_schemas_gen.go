@@ -31,7 +31,117 @@ func (s *Error) SetMessage(val string) {
 	s.Message = val
 }
 
-func (*Error) getProductRes() {}
+func (*Error) getProductRes()   {}
+func (*Error) patchProductRes() {}
+
+// NewOptFloat64 returns new OptFloat64 with value set to v.
+func NewOptFloat64(v float64) OptFloat64 {
+	return OptFloat64{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptFloat64 is optional float64.
+type OptFloat64 struct {
+	Value float64
+	Set   bool
+}
+
+// IsSet returns true if OptFloat64 was set.
+func (o OptFloat64) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptFloat64) Reset() {
+	var v float64
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptFloat64) SetTo(v float64) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptFloat64) Get() (v float64, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptFloat64) Or(d float64) float64 {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilString returns new OptNilString with value set to v.
+func NewOptNilString(v string) OptNilString {
+	return OptNilString{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilString is optional nullable string.
+type OptNilString struct {
+	Value string
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilString was set.
+func (o OptNilString) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilString) Reset() {
+	var v string
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilString) SetTo(v string) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilString) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilString) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v string
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilString) Get() (v string, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilString) Or(d string) string {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
 
 // NewOptString returns new OptString with value set to v.
 func NewOptString(v string) OptString {
@@ -127,4 +237,44 @@ func (s *Product) SetDescription(val OptString) {
 	s.Description = val
 }
 
-func (*Product) getProductRes() {}
+func (*Product) getProductRes()   {}
+func (*Product) patchProductRes() {}
+
+// The fields to change.
+// Ref: #/components/schemas/ProductPatch
+type ProductPatch struct {
+	Name  OptString  `json:"name"`
+	Price OptFloat64 `json:"price"`
+	// Send null to remove the desc.
+	Description OptNilString `json:"description"`
+}
+
+// GetName returns the value of Name.
+func (s *ProductPatch) GetName() OptString {
+	return s.Name
+}
+
+// GetPrice returns the value of Price.
+func (s *ProductPatch) GetPrice() OptFloat64 {
+	return s.Price
+}
+
+// GetDescription returns the value of Description.
+func (s *ProductPatch) GetDescription() OptNilString {
+	return s.Description
+}
+
+// SetName sets the value of Name.
+func (s *ProductPatch) SetName(val OptString) {
+	s.Name = val
+}
+
+// SetPrice sets the value of Price.
+func (s *ProductPatch) SetPrice(val OptFloat64) {
+	s.Price = val
+}
+
+// SetDescription sets the value of Description.
+func (s *ProductPatch) SetDescription(val OptNilString) {
+	s.Description = val
+}

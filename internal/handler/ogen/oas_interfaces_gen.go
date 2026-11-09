@@ -4,3 +4,7 @@ package ogen
 type GetProductRes interface {
 	getProductRes()
 }
+
+type PatchProductRes interface {
+	patchProductRes()
+}
