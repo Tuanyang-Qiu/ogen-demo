@@ -68,22 +68,63 @@ The data lives in memory, so restarting the server resets it.
 
 ## Progress
 
-Each step is one commit. A new section is added when a lesson is finished.
+Each step is one commit; the hash links a step to `git log`. Each line says the
+problem first, then what the step did about it.
 
 ### Lesson 1 - ogen basics (done)
 
-- Step 1-3: write a first spec, install ogen, generate code with `go generate`.
-- Step 4-5: implement a product handler and start an HTTP server.
-- Step 6: add an optional field and see it become `OptString`.
-- Step 7: add a second endpoint (list all products).
+Uses a flat layout (`generate.go` at the root, code in `internal/oas`); Lesson 2 replaces it.
+
+- **Step 1** `15a52c4` - ogen needs a contract to generate from: write a first
+  `openapi.yaml` and a `//go:generate` line that runs ogen.
+- **Step 2** `14bb2f4` (+ typo fix `d8ab92b`) - the ogen command is not installed:
+  add it to `go.mod`.
+- **Step 3** `e0778ad` - see what ogen produces: run `go generate ./...`; every file
+  in `internal/oas` is generated, then `go mod tidy` adds the packages it imports.
+- **Step 4** `a0f5a6e` - generated code only declares the `Handler` interface:
+  write the product handler that implements it.
+- **Step 5** `1985c9a` - nothing listens for requests yet: start an HTTP server in
+  `cmd/server`.
+- **Step 6** `6f6ad28` - how does a field that may be missing look in Go? Add an
+  optional `description`; it becomes `OptString`.
+- **Step 7** `3d06dcb` - what does a spec change cost? Add `listProducts`; the build
+  breaks until the handler gets the new method.
 
 ### Lesson 2 - BidOne layout and layering (done)
 
-- Step 1: move the ogen tool into `tools/` and generate into `internal/handler/ogen`,
-  the same way as `api-orders`.
-- Step 2: add `make ogen` and `make server`.
-- Step 3: add `/healthz`, group operations with `x-ogen-operation-group`,
-  and join handlers with `CombinedHandler`.
-- Step 4: split the code into handler, service and repo layers, with `pack`.
-- Step 5: add `PATCH /v1/products/{id}`: `unpack`, `pkg/optional`, and the
-  `OptString` / `OptNilString` types that tell "not sent", `null` and a value apart.
+- **Step 1** `7f67eae` - the flat layout does not look like the BidOne repos: move
+  ogen into its own `tools/` module and generate into `internal/handler/ogen`,
+  as `api-orders` does.
+- **Step 2** `0c11ce8` - the generate and build commands are long to type: add
+  `make ogen` and `make server`.
+- **Step 3** `339b609` - one handler file does not scale to many domains: add
+  `/healthz`, group operations with `x-ogen-operation-group`, one folder per domain,
+  joined by `CombinedHandler`.
+- **Step 4** `dbff7c5` - HTTP code, business rules and data access were mixed:
+  split into handler -> service -> repo, and `pack` ogen types at the edge.
+- **Step 5** `3814f58` - a partial update must tell "not sent", `null` and a value
+  apart: add `PATCH /v1/products/{id}` with `OptString` / `OptNilString`,
+  `unpack` and `pkg/optional`.
+
+### Lesson 3 - Errors (done)
+
+- **Step 1** `0a02ab0` - "product not found" answered 400 (= the request is
+  malformed): change it to 404 in the spec; the handler code does not change.
+- **Step 2** `d6c9904` - a second failure reason (the new name is already used)
+  needs its own status: add 409. One `*Error` can no longer pick the status, so ogen
+  generates `PatchProductNotFound` / `PatchProductConflict`; the service returns
+  `ErrProductNameTaken` and the handler maps it.
+- **Step 3** `67314bf` - what does a client get for an error we did not plan? Make
+  id 13 fail like a database: the 500 body leaks an internal hostname, nothing is
+  logged, and errors come in four formats.
+- **Step 4** `08f99a7` - fix the leak and the missing log: a custom
+  `WithErrorHandler` returns the reason for 4xx, and logs 5xx while returning only
+  "Internal Server Error". The body uses the spec's `Error` schema.
+- **Step 5** (no commit, skipped) - JSON bodies for unknown paths and methods via
+  `WithNotFound` / `WithMethodNotAllowed`; trap: the latter also receives `OPTIONS`
+  (CORS preflight). BidOne keeps the defaults.
+- **Step 6** (no commit, experiment) - ogen's "convenient errors" (`NewError`,
+  enabled when every operation has the same `default` response) splits errors into
+  two paths and turns a missing status into 200. BidOne sets
+  `convenient_errors: "off"`.
+- **Step 7** `05226d3` - remove the fake database failure with `git revert` of Step 3.
