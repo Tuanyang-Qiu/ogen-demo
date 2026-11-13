@@ -11,11 +11,6 @@ import (
 
 var ErrNoRows = errors.New("no product found")
 
-// To simulate db errors. when product id is 13, trigger db error.
-const brokenID = 13
-
-var errDBDown = errors.New("dial tcp db-prod-01.internal:5432: connect: connection refused")
-
 type Product struct {
 	ID          int64
 	Name        string
@@ -46,10 +41,6 @@ func NewMemoryRepository() *MemoryRepository {
 }
 
 func (r *MemoryRepository) GetProduct(_ context.Context, id int64) (Product, error) {
-
-	if id == brokenID {
-		return Product{}, errDBDown
-	}
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
