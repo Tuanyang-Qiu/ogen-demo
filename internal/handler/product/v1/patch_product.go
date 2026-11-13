@@ -14,8 +14,11 @@ import (
 func (h *Handler) PatchProduct(ctx context.Context, req *ogen.ProductPatch, params ogen.PatchProductParams) (ogen.PatchProductRes, error) {
 	p, err := h.svc.Update(ctx, unpack.ProductPatch(params.ID, req))
 	if err != nil {
-		if errors.Is(err, productsvc.ErrProductNotFound) {
-			return &ogen.Error{Message: err.Error()}, nil
+		switch {
+		case errors.Is(err, productsvc.ErrProductNotFound):
+			return &ogen.PatchProductNotFound{Message: err.Error()}, nil
+		case errors.Is(err, productsvc.ErrProductNameTaken):
+			return &ogen.PatchProductConflict{Message: err.Error()}, nil
 		}
 
 		return nil, err

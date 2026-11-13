@@ -24,6 +24,13 @@ func (s *service) Update(ctx context.Context, in UpdateInput) (productRepo.Produ
 	}
 
 	if in.Name.Set {
+		taken, err := s.nameTaken(ctx, in.ID, in.Name.Value)
+		if err != nil {
+			return productRepo.Product{}, err
+		}
+		if taken {
+			return productRepo.Product{}, ErrProductNameTaken
+		}
 		p.Name = in.Name.Value
 	}
 
@@ -46,4 +53,19 @@ func (s *service) Update(ctx context.Context, in UpdateInput) (productRepo.Produ
 
 	return updated, nil
 
+}
+
+func (s *service) nameTaken(ctx context.Context, id int64, name string) (bool, error) {
+	all, err := s.repo.ListProducts(ctx)
+	if err != nil {
+		return false, fmt.Errorf("list products: %w", err)
+	}
+
+	for _, other := range all {
+		if other.ID != id && other.Name == name {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

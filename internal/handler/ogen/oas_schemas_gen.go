@@ -31,8 +31,7 @@ func (s *Error) SetMessage(val string) {
 	s.Message = val
 }
 
-func (*Error) getProductRes()   {}
-func (*Error) patchProductRes() {}
+func (*Error) getProductRes() {}
 
 // NewOptFloat64 returns new OptFloat64 with value set to v.
 func NewOptFloat64(v float64) OptFloat64 {
@@ -188,6 +187,14 @@ func (o OptString) Or(d string) string {
 	}
 	return d
 }
+
+type PatchProductConflict Error
+
+func (*PatchProductConflict) patchProductRes() {}
+
+type PatchProductNotFound Error
+
+func (*PatchProductNotFound) patchProductRes() {}
 
 // Ref: #/components/schemas/Product
 type Product struct {
