@@ -101,8 +101,8 @@ func decodeGetProductResponse(resp *http.Response) (res GetProductRes, _ error) 
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
-	case 400:
-		// Code 400.
+	case 404:
+		// Code 404.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 		if err != nil {
 			return res, errors.Wrap(err, "parse media type")
@@ -261,8 +261,8 @@ func decodePatchProductResponse(resp *http.Response) (res PatchProductRes, _ err
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
-	case 400:
-		// Code 400.
+	case 404:
+		// Code 404.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 		if err != nil {
 			return res, errors.Wrap(err, "parse media type")

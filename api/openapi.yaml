@@ -61,7 +61,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
-        "400":
+        "404":
           description: no product has this id
           content:
             application/json:
@@ -93,7 +93,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
-        "400":
+        "404":
           description: no product has this id
           content:
             application/json:
