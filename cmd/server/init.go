@@ -20,7 +20,9 @@ func AssemblyAppComponents(logger *slog.Logger) (*ComponentGroup, error) {
 	prodSvc := productSvc.NewService(prodRepo)
 
 	combinedHandler := handler.NewCombinedHandler(logger, prodSvc)
-	ogenServer, err := ogen.NewServer(combinedHandler)
+	ogenServer, err := ogen.NewServer(combinedHandler,
+		ogen.WithErrorHandler(handler.NewErrorHandler(logger)),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ogen server: %w", err)
 	}
