@@ -128,3 +128,21 @@ Uses a flat layout (`generate.go` at the root, code in `internal/oas`); Lesson 2
   two paths and turns a missing status into 200. BidOne sets
   `convenient_errors: "off"`.
 - **Step 7** `05226d3` - remove the fake database failure with `git revert` of Step 3.
+
+### Lesson 4 - ogen configuration (done)
+
+- **Step 1** (no commit) - where is ogen's default config? There is no default file:
+  the defaults are Go code inside ogen, and without `--config` ogen looks for
+  `ogen.yml` in the current folder.
+- **Step 2** `23ef04d` - our generated code had client, OpenTelemetry and
+  `UnimplementedHandler` that BidOne does not use: copy `config.yaml` from
+  `api-orders`; 18 generated files become 13.
+- **Step 3** (no commit, experiment) - the config lists the same feature under both
+  `enable` and `disable`: `enable` always wins. Trap: with `ogen/unimplemented` on, a
+  forgotten handler is a runtime 501, not a build error.
+- **Step 4** (no commit, experiment) - `server/response/validation` checks our
+  response after the handler has run: a `nil` slice or a too-long name becomes a 500
+  although the data was already changed.
+- **Step 5** (no commit, experiment) - `ignore_not_implemented: ["all"]` hides what
+  ogen cannot generate: an XML-only `PUT` answers 405, and an `openIdConnect`
+  endpoint is served without login.
