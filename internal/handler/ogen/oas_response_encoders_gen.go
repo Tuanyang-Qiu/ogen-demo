@@ -3,18 +3,17 @@
 package ogen
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
+	"github.com/ogen-go/ogen/validate"
 )
 
-func encodeCheckHealthResponse(response *CheckHealthOK, w http.ResponseWriter, span trace.Span) error {
+func encodeCheckHealthResponse(response *CheckHealthOK, w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(200)
-	span.SetStatus(codes.Ok, http.StatusText(200))
 
 	e := new(jx.Encoder)
 	response.Encode(e)
@@ -25,12 +24,19 @@ func encodeCheckHealthResponse(response *CheckHealthOK, w http.ResponseWriter, s
 	return nil
 }
 
-func encodeGetProductResponse(response GetProductRes, w http.ResponseWriter, span trace.Span) error {
+func encodeGetProductResponse(response GetProductRes, w http.ResponseWriter) error {
 	switch response := response.(type) {
 	case *Product:
+		if err := func() error {
+			if err := response.Validate(); err != nil {
+				return err
+			}
+			return nil
+		}(); err != nil {
+			return errors.Wrap(err, "validate")
+		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(200)
-		span.SetStatus(codes.Ok, http.StatusText(200))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
@@ -43,7 +49,6 @@ func encodeGetProductResponse(response GetProductRes, w http.ResponseWriter, spa
 	case *Error:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
-		span.SetStatus(codes.Error, http.StatusText(404))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
@@ -58,10 +63,34 @@ func encodeGetProductResponse(response GetProductRes, w http.ResponseWriter, spa
 	}
 }
 
-func encodeListProductsResponse(response []Product, w http.ResponseWriter, span trace.Span) error {
+func encodeListProductsResponse(response []Product, w http.ResponseWriter) error {
+	if err := func() error {
+		if response == nil {
+			return errors.New("nil is invalid value")
+		}
+		var failures []validate.FieldError
+		for i, elem := range response {
+			if err := func() error {
+				if err := elem.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				failures = append(failures, validate.FieldError{
+					Name:  fmt.Sprintf("[%d]", i),
+					Error: err,
+				})
+			}
+		}
+		if len(failures) > 0 {
+			return &validate.Error{Fields: failures}
+		}
+		return nil
+	}(); err != nil {
+		return errors.Wrap(err, "validate")
+	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(200)
-	span.SetStatus(codes.Ok, http.StatusText(200))
 
 	e := new(jx.Encoder)
 	e.ArrStart()
@@ -76,12 +105,19 @@ func encodeListProductsResponse(response []Product, w http.ResponseWriter, span 
 	return nil
 }
 
-func encodePatchProductResponse(response PatchProductRes, w http.ResponseWriter, span trace.Span) error {
+func encodePatchProductResponse(response PatchProductRes, w http.ResponseWriter) error {
 	switch response := response.(type) {
 	case *Product:
+		if err := func() error {
+			if err := response.Validate(); err != nil {
+				return err
+			}
+			return nil
+		}(); err != nil {
+			return errors.Wrap(err, "validate")
+		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(200)
-		span.SetStatus(codes.Ok, http.StatusText(200))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
@@ -94,7 +130,6 @@ func encodePatchProductResponse(response PatchProductRes, w http.ResponseWriter,
 	case *PatchProductNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
-		span.SetStatus(codes.Error, http.StatusText(404))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
@@ -107,7 +142,6 @@ func encodePatchProductResponse(response PatchProductRes, w http.ResponseWriter,
 	case *PatchProductConflict:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(409)
-		span.SetStatus(codes.Error, http.StatusText(409))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
