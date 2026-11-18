@@ -3,12 +3,16 @@ info:
   title: Tuanyagn | Ogen Demo API
   version: 0.1.0 
 
+security:
+  - jwtAuth: ["api-catalog:fullaccess"]
+
 paths:
   /healthz:
     x-ogen-operation-group: health
     get:
       summary: Health check
-      operationId: CheckHealth 
+      operationId: CheckHealth
+      security: []
       tags:
         - Health
       responses:
@@ -26,6 +30,9 @@ paths:
     x-ogen-operation-group: product
     get:
       operationId: listProducts
+      security:
+        - jwtAuth:
+            - api-catalog:product-read
       summary: list all products
       tags: 
         - Product
@@ -43,6 +50,9 @@ paths:
     x-ogen-operation-group: product
     get:
       operationId: getProduct
+      security:
+        - jwtAuth:
+          - api-catalog:product-read
       summary: Get one product by its id
       tags:
         - Product
@@ -69,6 +79,9 @@ paths:
                 $ref: "#/components/schemas/Error"
     patch:
       operationId: patchProduct
+      security:
+        - jwtAuth:
+          - api-catalog:product-write
       summary: change some fields of one product
       tags:
         - Product
@@ -106,6 +119,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 components:
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT based authentication. Clients should send the token in the
+        `Authorization: Bearer <token>` header.
   schemas:
     Product:
       type: object

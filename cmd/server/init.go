@@ -20,7 +20,9 @@ func AssemblyAppComponents(logger *slog.Logger) (*ComponentGroup, error) {
 	prodSvc := productSvc.NewService(prodRepo)
 
 	combinedHandler := handler.NewCombinedHandler(logger, prodSvc)
+	securityHandler := handler.NewSecurityHandler(logger)
 	ogenServer, err := ogen.NewServer(combinedHandler,
+		securityHandler,
 		ogen.WithErrorHandler(handler.NewErrorHandler(logger)),
 	)
 	if err != nil {
